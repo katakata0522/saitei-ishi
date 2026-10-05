@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>最低ライン｜モンストの固定オーブ</title>
+  <meta name="description" content="モンストで、公式に個数が固定されているオーブだけを足す。かけらの在庫や目安は、自分でオンにしたときだけ別の数字になる。">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <p class="brand">最低ライン</p>
+    <h1>いま公式の固定分だけで、まだ取れるオーブ</h1>
+    <p class="lead">順位報酬、かけらの在庫、これから落ちるかは最低に入れない。ゲーム内の画面が正。ガチャは勧めない。</p>
+  </header>
+
+  <main>
+    <section class="hero" aria-labelledby="minimum-label">
+      <p id="minimum-label">最低</p>
+      <p class="figure"><span id="minimum">0</span><span class="unit">個</span></p>
+      <p class="asof">数字の確認日 <time id="checked-on">2026-10-05</time></p>
+      <div class="side-totals">
+        <p><span>条件を足すと</span><strong id="with-conditions">0</strong>個</p>
+        <p><span>目安まで足すと</span><strong id="with-estimate">0</strong>個</p>
+      </div>
+    </section>
+
+    <section aria-labelledby="min-heading">
+      <h2 id="min-heading">公式に個数があるもの</h2>
+      <p class="section-lead">「まだ取る」だけが最低に入る。最初から入っているのは、クエストサーチの1個だけ。</p>
+      <div id="minimum-list"></div>
+    </section>
+
+    <section aria-labelledby="cond-heading">
+      <h2 id="cond-heading">持っている人、届く人だけ</h2>
+      <p class="section-lead">ここは最低に入らない。オンにした分だけ「条件を足すと」に出る。</p>
+      <div id="conditional-list"></div>
+    </section>
+
+    <section aria-labelledby="est-heading">
+      <h2 id="est-heading">目安</h2>
+      <p class="section-lead">期間は公式でも、今月の総数が公式に再掲されていないもの。足すかどうかは自分で決める。</p>
+      <div id="estimate-list"></div>
+    </section>
+
+    <section aria-labelledby="ref-heading">
+      <h2 id="ref-heading">毎月の型。今月の最低には入れない</h2>
+      <div id="reference-list"></div>
+    </section>
+
+    <section aria-labelledby="wait-heading">
+      <h2 id="wait-heading">まだ載せていないゲーム</h2>
+      <p id="waiting"></p>
+      <p class="section-lead">公式の固定個数と、今月の窓が揃ってから足す。順位で個数が変わる報酬は最低にしない。</p>
+    </section>
+  </main>
+
+  <footer>
+    <button type="button" id="reset">選択を最初に戻す</button>
+    <p>有料オーブ、パック、ラッキーバルーンは入れていません。別クエストのオーブ×5は、5本セットの25個と混ぜていません。</p>
+  </footer>
+  <script type="module" src="./src/app.js"></script>
+</body>
+</html>
