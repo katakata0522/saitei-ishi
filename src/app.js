@@ -1,5 +1,6 @@
 import { CHECKED_ON, GAMES, ROWS, WAITING_GAMES } from "./data.mjs";
 import { contribution, summarize, totals } from "./calc.mjs";
+import { clampDays, escapeHtml, parseState } from "./state.mjs";
 
 const STORAGE_KEY = "saitei-ishi-v1";
 const game = GAMES[0];
@@ -10,15 +11,18 @@ const $ = (id) => document.getElementById(id);
 
 function loadState() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : {};
+    return parseState(localStorage.getItem(STORAGE_KEY));
   } catch {
     return {};
   }
 }
 
 function saveState() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(store.state));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(store.state));
+  } catch {
+    // Storage can be blocked or full; keep working for this visit.
+  }
 }
 
 function rowState(row) {
@@ -53,7 +57,7 @@ function choiceButtons(row) {
     ["done", "もう取った"],
     ["skip", "入れない"],
   ];
-  return `<div class="choices" role="group" aria-label="${row.title}の扱い">
+  return `<div class="choices" role="group" aria-label="${escapeHtml(row.title)}の扱い">
     ${options
       .map(
         ([value, label]) =>
@@ -65,7 +69,7 @@ function choiceButtons(row) {
 
 function daysField(row) {
   if (row.mode !== "perDay") return "";
-  const days = Math.max(0, Math.floor(Number(rowState(row).days) || 0));
+  const days = clampDays(rowState(row).days);
   return `<label class="days">在庫で作れる日数
     <input type="number" min="0" max="31" step="1" inputmode="numeric" value="${days}" aria-label="かけらでオーブを作れる日数">
   </label>`;
@@ -73,9 +77,9 @@ function daysField(row) {
 
 function links(row) {
   const extra = row.extraSourceUrl
-    ? ` / <a href="${row.extraSourceUrl}">${row.extraSourceLabel}</a>`
+    ? ` / <a href="${escapeHtml(row.extraSourceUrl)}">${escapeHtml(row.extraSourceLabel)}</a>`
     : "";
-  return `<a href="${row.sourceUrl}">${row.sourceLabel}</a>${extra}`;
+  return `<a href="${escapeHtml(row.sourceUrl)}">${escapeHtml(row.sourceLabel)}</a>${extra}`;
 }
 
 function statusText(row, now) {
@@ -89,13 +93,13 @@ function statusText(row, now) {
 
 function renderRow(row, now) {
   const amount = row.mode === "perDay" ? "1日 1" : String(row.orbs);
-  return `<article class="row" data-id="${row.id}" data-bucket="${row.bucket}">
+  return `<article class="row" data-id="${escapeHtml(row.id)}" data-bucket="${escapeHtml(row.bucket)}">
     <div class="row-top">
-      <h3>${row.title}</h3>
+      <h3>${escapeHtml(row.title)}</h3>
       <p class="orbs">${amount}<span>個</span></p>
     </div>
-    <p class="window">${row.windowLabel}${row.endsAt ? ` ・ ${formatWhen(row.endsAt, now)}` : ""}</p>
-    <p class="note">${row.note}</p>
+    <p class="window">${escapeHtml(row.windowLabel)}${row.endsAt ? ` ・ ${formatWhen(row.endsAt, now)}` : ""}</p>
+    <p class="note">${escapeHtml(row.note)}</p>
     <p class="meta">${links(row)} ・ 確認 ${CHECKED_ON}</p>
     <p class="status">${statusText(row, now)}</p>
     ${daysField(row)}
@@ -134,16 +138,17 @@ function render(now) {
   renderLists(now);
 }
 
-const now = new Date();
-render(now);
+render(new Date());
 
 document.body.addEventListener("click", (event) => {
   const button = event.target.closest("[data-choice]");
   if (!button) return;
-  const id = button.closest("[data-id]").dataset.id;
+  const id = button.closest("[data-id]")?.dataset.id;
   const row = rows.find((item) => item.id === id);
+  if (!row) return;
   store.state[id] = { ...rowState(row), choice: button.dataset.choice };
   saveState();
+  const now = new Date();
   paintNumbers(now);
   refreshStatuses(now);
 });
@@ -151,16 +156,22 @@ document.body.addEventListener("click", (event) => {
 document.body.addEventListener("input", (event) => {
   const input = event.target.closest("input[type='number']");
   if (!input) return;
-  const id = input.closest("[data-id]").dataset.id;
-  const days = Math.max(0, Math.min(31, Math.floor(Number(input.value) || 0)));
+  const id = input.closest("[data-id]")?.dataset.id;
+  if (!id) return;
+  const days = clampDays(input.value);
   store.state[id] = { choice: days > 0 ? "todo" : "unset", days };
   saveState();
+  const now = new Date();
   paintNumbers(now);
   refreshStatuses(now);
 });
 
 $("reset").addEventListener("click", () => {
   store.state = {};
-  localStorage.removeItem(STORAGE_KEY);
-  render(now);
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // ignore blocked storage
+  }
+  render(new Date());
 });
