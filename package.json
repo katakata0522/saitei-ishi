@@ -1,0 +1,8 @@
+{
+  "name": "saitei-ishi-preview",
+  "private": true,
+  "scripts": {
+    "dev": "node scripts/ai-studio-preview.mjs",
+    "start": "node scripts/ai-studio-preview.mjs"
+  }
+}
